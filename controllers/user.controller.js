@@ -3,23 +3,30 @@ import {User} from "./../models/user.models.js";
 
 const registerUser=tryCatch(
     async (req,res)=> {
-        const {username,fullName,email,password}=req.body();
+        const {username,fullName,email,password}=req.body;
         if([username,fullName,email,password].some((val)=>val.trim()==="")){
             throw new ApiError(400,"All fields are valid");
         }
-        const exist=User.findOne({
+        const exist=await User.findOne({
             $or:[{username},{email}]
         });
         if(exist){
+            console.log(exist);
             throw new ApiError(409,"username or email  already exist")
         }
         console.log("exist",exist);
         console.log("file data:",req.files)
         const avatarLocalPath=req.files?.avatar[0]?.path;
-        const coverImageLocalPath=req.files?.coverImage[0]?.path;
+        let coverImageLocalPath;
 
-        const avatar=uploadOnCloudinary(avatarLocalPath);
-        const coverImage=uploadOnCloudinary(coverImageLocalPath);
+        if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length>0){
+            coverImageLocalPath=req.files?.coverImage[0]?.path;
+        }
+
+        const avatar=await uploadOnCloudinary(avatarLocalPath);
+        const coverImage=await uploadOnCloudinary(coverImageLocalPath);
+
+
         
         if(!avatar) throw new ApiError(400,"avatar image is compulsory");
 
@@ -36,7 +43,7 @@ const registerUser=tryCatch(
         if(!createdUser) throw new ApiError(500,"Server issue while register");
 
         return res.status(200).json(
-            ApiResponse(201,createdUser,"User registered successfully")
+            new ApiResponse(201,createdUser,"User registered successfully")
         )
 
     }
