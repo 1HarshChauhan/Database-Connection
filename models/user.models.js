@@ -18,6 +18,10 @@ const userSchema=mongoose.Schema(
             lowercase:true,
             trim:true
         },
+        password:{
+            type:String,
+            required:true
+        },
         fullName:{
             type:String,
             required:true,
@@ -42,12 +46,12 @@ const userSchema=mongoose.Schema(
 
 userSchema.pre("save", async function(next){
     if(!this.isModified("password")) return next();
-    this.password=bcrypt.hash(this.password,5);
+   this.password= await bcrypt.hash(this.password,15);
     next();
 })
 
 userSchema.methods.isPasswordCorrect=async function(password){
-    return bcrypt.compare(password,this.password);
+    return await bcrypt.compare(password,this.password);
 }
 
 userSchema.methods.accessToken=function(){
