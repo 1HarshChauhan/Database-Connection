@@ -39,7 +39,10 @@ const userSchema=mongoose.Schema(
                 type:mongoose.Schema.Types.ObjectId,
                 ref:"Video"
             }
-        ]
+        ],
+        refreshToken:{
+            type:String
+        }
     },
     {timestamps:true}
 );
@@ -59,6 +62,7 @@ userSchema.methods.accessToken=function(){
         {
             _id:this._id,
             userName:this.userName,
+            
             fullName:this.fullName
         },
         process.env.ACCESS_TOKEN_SECRET,
