@@ -62,7 +62,7 @@ userSchema.methods.accessToken=function(){
         {
             _id:this._id,
             userName:this.userName,
-            
+
             fullName:this.fullName
         },
         process.env.ACCESS_TOKEN_SECRET,
@@ -72,10 +72,10 @@ userSchema.methods.accessToken=function(){
     )
 }
 
-userSchema.methods.refreshToken=function(){
+userSchema.methods.refreshingToken=function(){
     return jwt.sign(
         {
-            _id:this.id
+            _id:this._id
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
