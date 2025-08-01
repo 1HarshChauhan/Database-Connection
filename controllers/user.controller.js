@@ -144,9 +144,31 @@ const refreshAccessToken=tryCatch(async(req,res)=>{
         throw new ApiError(401,error?.message||"something wrong while refreshing access token");
    }
 })
+
+
+const changePassword=tryCatch(async(req,res)=>{
+    const {oldPassword,newPassword}=req.body;
+    const user=req.user;
+    if(!oldPassword || !newPassword) throw new ApiError(401,"please provide old and newPassword");
+    if(!user) throw new ApiError(500,"something issue with connection, cant locate the user");
+    const actualUser=await User.findById(user._id);
+    if(actualUser?.email!=user.email) throw new ApiError(401,"email name not matched");
+    if(actualUser.isPasswordCorrect(oldPassword)) throw new ApiError(401,"wrong password");
+    user.password=newPassword;
+    user.save({validateBeforeSave:false});
+    const {accessToken,refreshToken}=generateAccessAndRefreshToken();
+    return res.
+    status(200).
+    cookie("accessToken",accessToken,options).
+    cookie("refreshToken",refreshToken,options).
+    json(
+        new ApiResponse(200,{},"password changed successfully")
+    )
+})
 export {
     registerUser,
     loginUser,
     logoutUser,
-    refreshAccessToken
+    refreshAccessToken,
+    changePassword
 };
