@@ -195,6 +195,75 @@ const updateAvatar=tryCatch(async (req,res)=>{
     )
 
 })
+
+const getUserChannelProfile=tryCatch(async (req,res)=>{
+    try {
+        const {username}=req.params;
+        if(!username.trim()) throw new ApiError(401,"the channel you are looking for is not available");
+        const channel=User.aggregate([
+            {
+                $match:{
+                    username:username?.toLowerCase()
+                }
+            },
+            {
+                $lookup:{
+                    from:"subscriptions",
+                    localField:"_id",
+                    foriegnField:"channel",
+                    as: "Subscribe"
+                }
+            },
+            {
+                $lookup:{
+                    from:"subscriptions",
+                    localField:"_id",
+                    foriegnField:"subscriber",
+                    as:"SubscribedTo"
+                }
+            },
+            {
+                $addFields:{
+                    subscribersCount:{
+                        $size:"$Subscribe"
+                    },
+                    ChannelSubscriptionCount:{
+                        $size:"$SubscribedTo"
+                    },
+                    isSubscribed:{
+                        $cond:{
+                            if:{$in:[req.user?._id,"$Subscribe.subscriber"]},
+                            then:true,
+                            else:false
+                        },
+                    }
+                }
+            },
+                {
+                    $project:{
+                            username:1,
+                            email:1,
+                            subscribersCount:1,
+                            ChannelSubscriptionCount:1,
+                            isSubscribed:1,
+                            avatar:1,
+                            coverImage:1,
+                            createdAt:1,
+                            fullName:1
+    
+                    }
+                }
+        ]);
+    if(!channel.length) throw new ApiError(401,"channel have no data retireved from server")
+    } catch (error) {
+        throw new ApiError(401,`this error occured ${error}`)
+    }
+    return res.
+    status(200).
+    json(
+        new ApiResponse(200,channel[0],"channel info send succesfully")
+    )
+})
 export {
     registerUser,
     loginUser,
