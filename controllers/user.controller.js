@@ -165,10 +165,41 @@ const changePassword=tryCatch(async(req,res)=>{
         new ApiResponse(200,{},"password changed successfully")
     )
 })
+
+const getCurrentUser=tryCatch(async(req,res)=>{
+    const user=req.user;
+    if(!user) throw new ApiError(400,"no user logged in");
+    return res.
+    status(200).
+    json(
+        new ApiResponse(200,user,"user data displayed succesfully")
+    )
+});
+
+const updateAvatar=tryCatch(async (req,res)=>{
+    const avatarLocalPath=req.file?.path;
+    if(!avatarLocalPath) throw new ApiError(400,"file not recieved");
+    const avatar=await uploadOnCloudinary(avatarLocalPath);
+    if(!avatar) throw new ApiError(401,"file couldnt get uploaded");
+    const user=User.findByIdAndUpdate(req.user?._id,{
+        $set:{
+            avatar:avatar.url
+        }
+    },
+        {new:true}
+    ).select("-password -refreshToken");
+    return res.
+    status(200).
+    json(
+        new ApiResponse(201,user,"avatar updated succesfully")
+    )
+
+})
 export {
     registerUser,
     loginUser,
     logoutUser,
     refreshAccessToken,
-    changePassword
+    changePassword,
+    updateAvatar
 };
