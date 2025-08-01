@@ -153,9 +153,9 @@ const changePassword=tryCatch(async(req,res)=>{
     if(!user) throw new ApiError(500,"something issue with connection, cant locate the user");
     const actualUser=await User.findById(user._id);
     if(actualUser?.email!=user.email) throw new ApiError(401,"email name not matched");
-    if(actualUser.isPasswordCorrect(oldPassword)) throw new ApiError(401,"wrong password");
+    if(await actualUser.isPasswordCorrect(oldPassword)) throw new ApiError(401,"wrong password");
     user.password=newPassword;
-    user.save({validateBeforeSave:false});
+    await user.save({validateBeforeSave:false});
     const {accessToken,refreshToken}=generateAccessAndRefreshToken();
     return res.
     status(200).
